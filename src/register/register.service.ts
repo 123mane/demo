@@ -4,14 +4,22 @@ import { where } from 'sequelize';
 import { User } from 'src/users/entities/user.entity';
 import { CreateRegisterDto } from './dto/create-register.dto';
 import { UpdateRegisterDto } from './dto/update-register.dto';
-import { Register } from './entities/register.entity';
+import { MultiMedia, Register } from './entities/register.entity';
 
 @Injectable()
 export class RegisterService {
-  constructor(@InjectModel(Register) private RegisterRepo: typeof Register) {}
+  constructor(
+    @InjectModel(Register) private RegisterRepo: typeof Register,
+    @InjectModel(MultiMedia) private MultiMeadiaRepository: typeof MultiMedia,
+  ) {}
 
   async create(createRegisterDto: CreateRegisterDto) {
     return await this.RegisterRepo.create(createRegisterDto);
+  }
+
+  async uploadimage(params: any) {
+    // console.log(params);
+    return await this.MultiMeadiaRepository.create(params);
   }
 
   async findAll() {
