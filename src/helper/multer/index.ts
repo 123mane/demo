@@ -4,11 +4,6 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 import { extname, join } from 'path';
 import { v4 as uuid } from 'uuid';
 import { existsSync, mkdirSync } from 'fs';
-// const data = require('../../../images/');
-
-// export const multerConfig = {
-//   dest: data,
-// };
 
 export const multerOptions = {
   // Check the mimetypes to allow for upload
