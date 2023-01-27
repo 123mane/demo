@@ -8,14 +8,12 @@ import { arrayOfModels } from './database/models/model';
 import { UsersModule } from './users/users.module';
 import { RegisterModule } from './register/register.module';
 import config from './config/config';
-import { MulterModule } from '@nestjs/platform-express';
 
 const { db_host, db_name, db_password, db_port, db_username } =
   config.databaseConfig;
 
 @Module({
-  imports: [  
-    MulterModule.register({dest:'./images'}),
+  imports: [
     ScheduleModule.forRoot(),
     UsersModule,
     SequelizeModule.forRoot({

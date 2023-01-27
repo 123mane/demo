@@ -1,4 +1,3 @@
-import * as multer from 'multer';
 import { diskStorage } from 'multer';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { extname, join } from 'path';
