@@ -16,7 +16,6 @@ import { AuthService } from '../auth/auth.service';
 import { CreateUserDto, UserLoginDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { comparePassword, passwordEncryption } from 'src/helper/utilis';
-
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guard/auth.guard';
 import { RoleGuard } from 'src/auth/guard/auth.roles';
