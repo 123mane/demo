@@ -9,4 +9,8 @@ export default {
     db_username: process.env.DB_USERNAME,
     db_password: process.env.DB_PASSWORD,
   },
+  jwt: {
+    secret: process.env.SECRET,
+    expiresIn: process.env.EXPIRES_IN,
+  },
 };

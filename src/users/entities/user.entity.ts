@@ -6,9 +6,8 @@ import {
   BelongsTo,
   ForeignKey,
 } from 'sequelize-typescript';
-import { Register } from 'src/register/entities/register.entity';
-
-@Table({ tableName: 'users' })
+import { Role } from 'src/role/entities/role.entity';
+@Table({ tableName: 'Users' })
 export class User extends Model<User> {
   @Column({
     type: DataType.STRING,
@@ -26,6 +25,12 @@ export class User extends Model<User> {
     type: DataType.STRING,
     allowNull: true,
   })
+  userName: string;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
   email: string;
 
   @Column({
@@ -34,14 +39,24 @@ export class User extends Model<User> {
   })
   password: string;
 
+  @ForeignKey(() => Role)
+  @Column({
+    type: DataType.INTEGER,
+    defaultValue: 3,
+  })
+  roleId: number;
+
+  @BelongsTo(() => Role)
+  role: Role;
+
   @Column({
     type: DataType.STRING,
     allowNull: true,
-    // set(walletAddress: string) {
-    //   if (walletAddress != '') {
-    //     this.setDataValue('walletAddress', walletAddress.toLowerCase());
-    //   }
-    // },
+    set(walletAddress: string) {
+      if (walletAddress != '') {
+        this.setDataValue('walletAddress', walletAddress.toLowerCase());
+      }
+    },
   })
   walletAddress: string;
 
@@ -68,6 +83,4 @@ export class User extends Model<User> {
     allowNull: true,
   })
   deviceToken: string;
-
-  
 }

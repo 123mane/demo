@@ -1,5 +1,11 @@
+import {
+  BadRequestException,
+  ValidationError,
+  ValidationPipe,
+} from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { normalizeValidationError } from './helper/utilis/expection.utils';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -13,6 +19,16 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      exceptionFactory: (errors: ValidationError[]) => {
+        if (errors.length > 0)
+          throw new BadRequestException(normalizeValidationError(errors));
+      },
+    }),
+  );
   await app.listen(3001);
 }
 bootstrap();

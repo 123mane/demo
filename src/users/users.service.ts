@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
+import { Op } from 'sequelize';
 import { Register } from 'src/register/entities/register.entity';
+import { Role } from 'src/role/entities/role.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
@@ -15,6 +17,27 @@ export class UsersService {
 
   async create(CreateUserDto: CreateUserDto) {
     return await this.userRepository.create(CreateUserDto);
+  }
+  // async checkNameAndEmail(userName: string) {
+  //   return await this.userRepository.findOne({
+  //     where: { [Op.or]: [{ userName: userName }, { email: userName }] },
+  //     include: [{ model: Role }],
+  //   });
+  // }
+   async checkNameAndEmail(userName: string) {
+    return await this.userRepository.findOne({
+      where: {
+        [Op.or]: [
+          {
+            userName: userName,
+          },
+          {
+            email: userName,
+          },
+        ],
+      },
+      include: [{ model: Role }],
+    });
   }
 
   async findAll() {

@@ -5,7 +5,6 @@ import {
   Column,
   DataType,
   Model,
-  AllowNull,
   ForeignKey,
   BelongsTo,
 } from 'sequelize-typescript';
@@ -75,7 +74,6 @@ export class UploadFolderDto {
   // })
   // @IsNotEmpty()
   // fileFor: string;
-
   // @ApiProperty({
   //   required: true,
   //   type: 'string',

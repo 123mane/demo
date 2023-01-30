@@ -8,26 +8,69 @@ import {
   Delete,
   Res,
   HttpStatus,
-  UseInterceptors,
-  UploadedFile,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
+import { AuthService } from '../auth/auth.service';
+import { CreateUserDto, UserLoginDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { passwordEncryption } from 'src/helper/utilis';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import * as path from 'path';
+import { comparePassword, passwordEncryption } from 'src/helper/utilis';
 
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+@ApiTags('Users')
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly authService: AuthService,
+  ) {}
 
   @Post('/login')
-  async login() {
-    // this.usersService.login();
-    return 'hello';
+  @ApiOperation({ description: 'This Api is used for admin login' })
+  async login(@Body() loginDto: UserLoginDto, @Res() res: Response) {
+    try {
+      const isUserExists = await this.usersService.checkNameAndEmail(
+        loginDto.userName,
+      );
+      if (!isUserExists) {
+        return res.status(HttpStatus.NOT_FOUND).send({
+          success: false,
+
+          data: null,
+        });
+      }
+      let isPasswordValid = await comparePassword(
+        loginDto.password,
+        isUserExists.password,
+      );
+      if (!isPasswordValid) {
+        return res.status(HttpStatus.BAD_REQUEST).send({
+          success: false,
+
+          data: null,
+        });
+      }
+
+      let token = await this.authService.generateToken({
+        id: isUserExists.id,
+        roleId: isUserExists.role,
+        firstName: isUserExists.firstName,
+        lastName: isUserExists.lastName,
+        userName: isUserExists.userName,
+        email: isUserExists.email,
+      });
+      return res.status(HttpStatus.OK).send({
+        success: true,
+
+        data: { token },
+      });
+    } catch (error) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        success: false,
+        message: error.message,
+        data: null,
+      });
+    }
   }
   @Post('/send')
   async create(@Body() createUserDto: CreateUserDto) {
