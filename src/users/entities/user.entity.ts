@@ -53,12 +53,12 @@ export class User extends Model<User> {
 
   @Column({
     type: DataType.STRING,
-    // allowNull: true,
-    // set(walletAddress: string) {
-    //   if (walletAddress != '') {
-    //     this.setDataValue('walletAddress', walletAddress.toLowerCase());
-    //   }
-    // },
+    allowNull: true,
+    set(walletAddress: string) {
+      if (walletAddress != '') {
+        this.setDataValue('walletAddress', walletAddress.toLowerCase());
+      }
+    },
   })
   walletAddress: string;
 
