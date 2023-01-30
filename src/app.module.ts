@@ -7,6 +7,8 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { arrayOfModels } from './database/models/model';
 import { UsersModule } from './users/users.module';
 import { RegisterModule } from './register/register.module';
+import { RoleModule } from './role/role.module';
+import { PermissionModule } from './permission/permission.module';
 import config from './config/config';
 
 const { db_host, db_name, db_password, db_port, db_username } =
@@ -29,6 +31,8 @@ const { db_host, db_name, db_password, db_port, db_username } =
       logging: false,
     }),
     RegisterModule,
+    RoleModule,
+    PermissionModule,
   ],
   controllers: [AppController],
   providers: [AppService, CronService],
