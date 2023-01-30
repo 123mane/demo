@@ -8,6 +8,7 @@ import {
   Delete,
   Res,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { UsersService } from './users.service';
@@ -16,7 +17,10 @@ import { CreateUserDto, UserLoginDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { comparePassword, passwordEncryption } from 'src/helper/utilis';
 
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/auth/guard/auth.guard';
+import { RoleGuard } from 'src/auth/guard/auth.roles';
+import { RoleEnum } from 'src/helper/enum/roleEnum';
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
@@ -80,63 +84,26 @@ export class UsersController {
 
     return this.usersService.create(createUserDto);
   }
-
-  // @Post('/')
-  // // @ApiConsumes('multipart/form-data')
-  // @UseInterceptors(FileInterceptor('file', multerOptions))
-  // async uploadcreate(
-  //   @Query() query: UploadFolderDto,
-  //   @Body() createUploadDto: CreateUploadDto,
-  //   @UploadedFile() file: Express.Multer.File,
-  //   @I18n() i18n: I18nContext,
-  //   @Res() res: Response
-  // ) {
-  //   try {
-  //     let params = {
-  //       fileName: file['key'],
-  //       fileType: query.fileType,
-  //       fileFor: query.fileFor,
-  //       status: 'used',
-  //       originalName: file.originalname,
-  //     };
-  //     let multiMedia = await this.uploadService.create(params);
-  //     let fullPath = `${basePath}${multiMedia.fileName}`;
-  //     return res.status(HttpStatus.CREATED).json({
-  //       success: true,
-  //       message: i18n.t('common.FILE_UPLOADED'),
-  //       data: { fileName: fullPath },
-  //     });
-  //   } catch (error) {
-  //     return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-  //       success: false,
-  //       message: error.message,
-  //       data: null,
-  //     });
-  //   }
-  // }
-
-  // @Post('upload')
-  // @UseInterceptors(FileInterceptor('file'))
-  // uploadFile(@UploadedFile() file: Express.Multer.File) {
-  //   console.log(file);
-  //   return file;
-  // }
-
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RoleGuard(RoleEnum.user))
   @Get()
   findAll() {
     return this.usersService.findAll();
   }
-
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RoleGuard(RoleEnum.user))
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(+id);
   }
-
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RoleGuard(RoleEnum.user))
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(+id, updateUserDto);
   }
-
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RoleGuard(RoleEnum.user))
   @Delete(':id')
   async delete(@Param('id') id: string, @Res() res: Response) {
     await this.usersService.delete(+id);

@@ -12,10 +12,11 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const config = new DocumentBuilder()
-    .setTitle('Relation')
+    .setTitle('Dummy')
     .setDescription('The Crud-Relation API description')
     .setVersion('1.0')
     .addTag('Basic')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
@@ -29,6 +30,7 @@ async function bootstrap() {
       },
     }),
   );
+
   await app.listen(3001);
 }
 bootstrap();

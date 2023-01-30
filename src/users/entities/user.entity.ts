@@ -5,7 +5,9 @@ import {
   Model,
   BelongsTo,
   ForeignKey,
+  HasOne,
 } from 'sequelize-typescript';
+import { Register } from 'src/register/entities/register.entity';
 import { Role } from 'src/role/entities/role.entity';
 @Table({ tableName: 'Users' })
 export class User extends Model<User> {
@@ -51,12 +53,12 @@ export class User extends Model<User> {
 
   @Column({
     type: DataType.STRING,
-    allowNull: true,
-    set(walletAddress: string) {
-      if (walletAddress != '') {
-        this.setDataValue('walletAddress', walletAddress.toLowerCase());
-      }
-    },
+    // allowNull: true,
+    // set(walletAddress: string) {
+    //   if (walletAddress != '') {
+    //     this.setDataValue('walletAddress', walletAddress.toLowerCase());
+    //   }
+    // },
   })
   walletAddress: string;
 
@@ -83,4 +85,7 @@ export class User extends Model<User> {
     allowNull: true,
   })
   deviceToken: string;
+
+  @HasOne(() => Register)
+  register: Register;
 }
