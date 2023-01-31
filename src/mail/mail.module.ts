@@ -12,7 +12,6 @@ const { host, user, password, senderMail } =
     MailerModule.forRoot({
       transport: {
         host,
-        port: 465,
         secure: false,
         auth: {
           user,
@@ -23,7 +22,7 @@ const { host, user, password, senderMail } =
         from: senderMail,
       },
       template: {
-        dir: join(__dirname, '..', './templates'),
+        dir: join(__dirname, 'templates'),
         adapter: new HandlebarsAdapter(),
         options: {
           strict: true,

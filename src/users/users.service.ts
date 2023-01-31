@@ -26,6 +26,7 @@ export class UsersService {
   //   });
   // }
   async checkNameAndEmail(userName: string) {
+    console.log('name:', userName, 'and', 'email:', userName);
     return await this.userRepository.findOne({
       where: {
         [Op.or]: [
@@ -54,6 +55,9 @@ export class UsersService {
     let where = {};
     if (param.id) {
       where['id'] = param.id;
+    }
+    if (param.email) {
+      where['email'] = param.email;
     }
     return await this.userRepository.findOne({
       where,

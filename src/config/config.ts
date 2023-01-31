@@ -23,4 +23,5 @@ export default {
     password: process.env.SMTP_PASSWORD,
     senderMail: process.env.SMTP_SENDER_MAIL,
   },
+  app: { websiteUrl: process.env.WEBSITE_URL },
 };

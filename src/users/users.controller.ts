@@ -41,25 +41,33 @@ export class UsersController {
   @Post('/login')
   @ApiOperation({ description: 'This Api is used for admin login' })
   async login(@Body() loginDto: UserLoginDto, @Res() res: Response) {
+    // console.log(
+    //   'username:',
+    //   loginDto.userName,
+    //   'and',
+    //   'password:',
+    //   loginDto.password,
+    // );
     try {
       const isUserExists = await this.usersService.checkNameAndEmail(
         loginDto.userName,
       );
+      // return isUserExists;
       if (!isUserExists) {
         return res.status(HttpStatus.NOT_FOUND).send({
           success: false,
-
           data: null,
         });
       }
+      // console.log('password:', isUserExists);
       let isPasswordValid = await comparePassword(
         loginDto.password,
         isUserExists.password,
       );
+      console.log('pasword', isPasswordValid);
       if (!isPasswordValid) {
         return res.status(HttpStatus.BAD_REQUEST).send({
           success: false,
-
           data: null,
         });
       }
@@ -74,7 +82,6 @@ export class UsersController {
       });
       return res.status(HttpStatus.OK).send({
         success: true,
-
         data: { token },
       });
     } catch (error) {
@@ -85,6 +92,8 @@ export class UsersController {
       });
     }
   }
+
+
   @Post('/send')
   async create(@Body() createUserDto: CreateUserDto) {
     createUserDto['password'] = await passwordEncryption(
@@ -168,6 +177,7 @@ export class UsersController {
   ) {
     try {
       const user = await this.usersService.findOne(generateResetPasswordToken);
+
       if (!user) {
         return res.status(HttpStatus.NOT_FOUND).send({
           success: true,
@@ -183,6 +193,14 @@ export class UsersController {
         user.id,
         resetPasswordToken,
       );
+      // console.log(
+      //   'email',
+      //   generateResetPasswordToken.email,
+      //   'and',
+      //   'token',
+      //   resetPasswordToken,
+      // );
+
       await this.mailService.resetPassword(
         generateResetPasswordToken.email,
         resetPasswordToken,
@@ -190,6 +208,7 @@ export class UsersController {
       return res.status(HttpStatus.OK).send({
         success: true,
         // message: i18n.t('common.EMAIL_RESET_PASSWORD_LINK'),
+        message: 'Email_Reset_Password_Link',
         data: null,
       });
     } catch (error) {
