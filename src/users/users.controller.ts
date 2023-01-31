@@ -41,30 +41,23 @@ export class UsersController {
   @Post('/login')
   @ApiOperation({ description: 'This Api is used for admin login' })
   async login(@Body() loginDto: UserLoginDto, @Res() res: Response) {
-    // console.log(
-    //   'username:',
-    //   loginDto.userName,
-    //   'and',
-    //   'password:',
-    //   loginDto.password,
-    // );
     try {
       const isUserExists = await this.usersService.checkNameAndEmail(
         loginDto.userName,
       );
-      // return isUserExists;
+
       if (!isUserExists) {
         return res.status(HttpStatus.NOT_FOUND).send({
           success: false,
           data: null,
         });
       }
-      // console.log('password:', isUserExists);
+
       let isPasswordValid = await comparePassword(
         loginDto.password,
         isUserExists.password,
       );
-      console.log('pasword', isPasswordValid);
+      // console.log('pasword', isPasswordValid);
       if (!isPasswordValid) {
         return res.status(HttpStatus.BAD_REQUEST).send({
           success: false,
@@ -113,18 +106,51 @@ export class UsersController {
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(+id);
   }
+
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RoleGuard(RoleEnum.user))
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(+id, updateUserDto);
   }
+
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RoleGuard(RoleEnum.user))
   @Delete(':id')
-  async delete(@Param('id') id: string, @Res() res: Response) {
-    await this.usersService.delete(+id);
-    return res.status(HttpStatus.OK).json({ Data: 'user data Deleted' });
+  @UseGuards(JwtAuthGuard, RoleGuard(RoleEnum.user))
+  @ApiOperation({
+    description:
+      'This api is used to delete the user only admin can access this route',
+  })
+  async remove(
+    @Param('id') id: string,
+    // @I18n() i18n: I18nContext,
+    @Res() res: Response,
+  ) {
+    try {
+      let user = await this.usersService.findOne({ id: +id });
+      if (user) {
+        await user.destroy();
+        return res.status(HttpStatus.OK).send({
+          success: true,
+
+          message: 'User Deleted',
+          data: null,
+        });
+      } else {
+        return res.status(HttpStatus.NOT_FOUND).send({
+          success: false,
+
+          message: 'User Not Found',
+          data: user,
+        });
+      }
+    } catch (error) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        success: false,
+        message: error.message,
+        data: null,
+      });
+    }
   }
 
   @ApiBearerAuth()

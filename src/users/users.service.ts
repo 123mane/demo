@@ -26,7 +26,7 @@ export class UsersService {
   //   });
   // }
   async checkNameAndEmail(userName: string) {
-    console.log('name:', userName, 'and', 'email:', userName);
+    // console.log('name:', userName, 'and', 'email:', userName);
     return await this.userRepository.findOne({
       where: {
         [Op.or]: [
@@ -101,7 +101,7 @@ export class UsersService {
     );
   }
 
-  async delete(id: number) {
-    return await this.userRepository.destroy({ where: { id: id } });
-  }
+  // async delete(id: number) {
+  //   return await this.userRepository.destroy({ where: { id: id } });
+  // }
 }

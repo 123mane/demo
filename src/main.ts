@@ -40,6 +40,6 @@ async function bootstrap() {
   app.engine('hbs', hbs({ extname: 'hbs' }));
   app.setViewEngine('hbs');
 
-  await app.listen(3001);
+  await app.listen(3000);
 }
 bootstrap();
