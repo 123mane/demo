@@ -93,7 +93,6 @@ export class UsersController {
     }
   }
 
-
   @Post('/send')
   async create(@Body() createUserDto: CreateUserDto) {
     createUserDto['password'] = await passwordEncryption(
