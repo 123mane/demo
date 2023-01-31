@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Op } from 'sequelize';
+import { Permission } from 'src/permission/entities/permission.entity';
 import { Register } from 'src/register/entities/register.entity';
 import { Role } from 'src/role/entities/role.entity';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -24,7 +25,7 @@ export class UsersService {
   //     include: [{ model: Role }],
   //   });
   // }
-   async checkNameAndEmail(userName: string) {
+  async checkNameAndEmail(userName: string) {
     return await this.userRepository.findOne({
       where: {
         [Op.or]: [
@@ -46,14 +47,54 @@ export class UsersService {
     });
   }
 
-  async findOne(id: number) {
-    return await this.userRepository.findOne({ where: { id: id } });
+  // async findOne(id: number) {
+  //   return await this.userRepository.findOne({ where: { id: id } });
+  // }
+  async findOne(param: any): Promise<User> {
+    let where = {};
+    if (param.id) {
+      where['id'] = param.id;
+    }
+    return await this.userRepository.findOne({
+      where,
+      include: [
+        {
+          model: Role,
+          include: [
+            {
+              model: Permission,
+            },
+          ],
+        },
+      ],
+    });
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto) {
+  async update(id: number, updateUserDto: any) {
     return await this.userRepository.update(updateUserDto, {
       where: { id: id },
     });
+  }
+  async saveResetPasswordToken(id: number, token: string) {
+    return await this.userRepository.update(
+      { resetPasswordToken: token },
+      { where: { id } },
+    );
+  }
+  async resetTokenExists(token: string) {
+    return await this.userRepository.findOne({
+      where: { resetPasswordToken: token },
+    });
+  }
+
+  async updateResetPassword(password: string, id: number) {
+    return await this.userRepository.update({ password }, { where: { id } });
+  }
+  async deleteResetPassword(id: number) {
+    return await this.userRepository.update(
+      { resetPasswordToken: '' },
+      { where: { id } },
+    );
   }
 
   async delete(id: number) {

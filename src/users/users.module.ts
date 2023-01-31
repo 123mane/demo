@@ -4,9 +4,10 @@ import { UsersController } from './users.controller';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { User } from './entities/user.entity';
 import { AuthModule } from 'src/auth/auth.module';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
-  imports: [SequelizeModule.forFeature([User]), AuthModule],
+  imports: [SequelizeModule.forFeature([User]), AuthModule, MailModule],
   controllers: [UsersController],
   providers: [UsersService],
 })

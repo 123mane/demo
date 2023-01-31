@@ -3,7 +3,8 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from '../users/entities/user.entity';
 import { AuthTokenDto } from './dto/authtoken.dto';
-
+import config from '../config/config';
+const { secret, expiresIn } = config.resetPasswordConfig;
 @Injectable()
 export class AuthService {
   constructor(
@@ -14,6 +15,9 @@ export class AuthService {
 
   async generateToken(payload: AuthTokenDto) {
     return await this.jwtService.signAsync(payload);
+  }
+  async generateResetPasswordToken() {
+    return await this.jwtService.signAsync({ secret }, { expiresIn });
   }
 
   async verifyResetPasswordToken(token: string) {

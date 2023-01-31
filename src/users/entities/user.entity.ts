@@ -61,6 +61,12 @@ export class User extends Model<User> {
     },
   })
   walletAddress: string;
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    defaultValue: '',
+  })
+  resetPasswordToken: string;
 
   @Column({
     type: DataType.STRING,

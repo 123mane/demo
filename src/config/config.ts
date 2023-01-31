@@ -13,4 +13,14 @@ export default {
     secret: process.env.SECRET,
     expiresIn: process.env.EXPIRES_IN,
   },
+  resetPasswordConfig: {
+    secret: process.env.SECRET,
+    expiresIn: process.env.EXPIRES_IN,
+  },
+  smtpMailConfiguration: {
+    host: process.env.SMTP_HOST,
+    user: process.env.SMTP_USER,
+    password: process.env.SMTP_PASSWORD,
+    senderMail: process.env.SMTP_SENDER_MAIL,
+  },
 };

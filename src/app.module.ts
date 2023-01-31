@@ -10,6 +10,7 @@ import { RegisterModule } from './register/register.module';
 import { RoleModule } from './role/role.module';
 import { PermissionModule } from './permission/permission.module';
 import config from './config/config';
+import { MailModule } from './mail/mail.module';
 
 const { db_host, db_name, db_password, db_port, db_username } =
   config.databaseConfig;
@@ -30,6 +31,7 @@ const { db_host, db_name, db_password, db_port, db_username } =
       synchronize: true,
       logging: false,
     }),
+    MailModule,
     RegisterModule,
     RoleModule,
     PermissionModule,
