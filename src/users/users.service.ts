@@ -5,7 +5,6 @@ import { Permission } from 'src/permission/entities/permission.entity';
 import { Register } from 'src/register/entities/register.entity';
 import { Role } from 'src/role/entities/role.entity';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 
 @Injectable()
@@ -15,18 +14,15 @@ export class UsersService {
   async login(email: string, password: string) {
     await this.userRepository.findOne({ where: { email: email } });
   }
+  async metaMaskUserCreation(params: any) {
+    return await this.userRepository.create(params);
+  }
 
   async create(CreateUserDto: CreateUserDto) {
     return await this.userRepository.create(CreateUserDto);
   }
-  // async checkNameAndEmail(userName: string) {
-  //   return await this.userRepository.findOne({
-  //     where: { [Op.or]: [{ userName: userName }, { email: userName }] },
-  //     include: [{ model: Role }],
-  //   });
-  // }
+
   async checkNameAndEmail(userName: string) {
-    // console.log('name:', userName, 'and', 'email:', userName);
     return await this.userRepository.findOne({
       where: {
         [Op.or]: [
@@ -48,9 +44,6 @@ export class UsersService {
     });
   }
 
-  // async findOne(id: number) {
-  //   return await this.userRepository.findOne({ where: { id: id } });
-  // }
   async findOne(param: any): Promise<User> {
     let where = {};
     if (param.id) {
@@ -58,6 +51,12 @@ export class UsersService {
     }
     if (param.email) {
       where['email'] = param.email;
+    }
+    if (param.walletAddress) {
+      where['walletAddress'] = param.walletAddress;
+    }
+    if (param.userName) {
+      where['userName'] = param.userName;
     }
     return await this.userRepository.findOne({
       where,
@@ -100,8 +99,4 @@ export class UsersService {
       { where: { id } },
     );
   }
-
-  // async delete(id: number) {
-  //   return await this.userRepository.destroy({ where: { id: id } });
-  // }
 }

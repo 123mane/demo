@@ -3,12 +3,19 @@ import { Transform } from 'class-transformer';
 import {
   IsEmail,
   IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsString,
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { RoleEnum } from 'src/helper/enum/roleEnum';
+
+export class UserNonceDto {
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsNotEmpty()
+  walletAddress: string;
+}
 export class CreateUserDto {
   @ApiProperty({ required: true })
   @IsString()
@@ -48,6 +55,18 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   nonce: string;
+}
+export class AdminAccountCreateDto extends CreateUserDto {
+  @ApiProperty({ required: true, type: 'string', enum: RoleEnum })
+  @IsNotEmpty()
+  @Transform(({ value }) => {
+    if (value == 'admin') {
+      return 2;
+    } else if (value == 'subadmin') {
+      return 3;
+    }
+  })
+  roleId: string;
 }
 
 export class UserLoginDto {

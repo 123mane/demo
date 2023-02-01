@@ -7,7 +7,6 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { normalizeValidationError } from './helper/utilis/expection.utils';
 import { AppModule } from './app.module';
-
 import * as hbs from 'express-handlebars';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
@@ -19,7 +18,7 @@ async function bootstrap() {
     .setTitle('Dummy')
     .setDescription('The Crud-Relation API description')
     .setVersion('1.0')
-    .addTag('Basic')
+
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);

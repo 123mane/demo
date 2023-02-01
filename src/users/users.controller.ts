@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import {
   Controller,
   Get,
@@ -16,7 +17,12 @@ import {
 import { Response } from 'express';
 import { UsersService } from './users.service';
 import { AuthService } from '../auth/auth.service';
-import { CreateUserDto, UserLoginDto } from './dto/create-user.dto';
+import {
+  AdminAccountCreateDto,
+  CreateUserDto,
+  UserLoginDto,
+  UserNonceDto,
+} from './dto/create-user.dto';
 import { UpdateUserDto, UpdateUserRoleDto } from './dto/update-user.dto';
 import { comparePassword, passwordEncryption } from 'src/helper/utilis';
 import {
@@ -29,6 +35,7 @@ import { RoleGuard } from 'src/auth/guard/auth.roles';
 import { RoleEnum } from 'src/helper/enum/roleEnum';
 import { MailService } from 'src/mail/mail.service';
 import { updateResetPassword } from './dto/update-reset.dto';
+import { AuthModule } from 'src/auth/auth.module';
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
@@ -38,6 +45,55 @@ export class UsersController {
     private readonly mailService: MailService,
   ) {}
 
+  @Post('/admin/account-create')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    description: 'this Api used for  admin panel to create account by admin',
+  })
+  async subcreate(
+    @Res() res: Response,
+    @Body() createUserDto: AdminAccountCreateDto,
+  ) {
+    try {
+      let checkUserName = await this.usersService.findOne({
+        userName: createUserDto.userName,
+      });
+      if (checkUserName) {
+        return res.status(HttpStatus.BAD_REQUEST).send({
+          success: false,
+          message: 'Username Already Exist',
+          data: null,
+        });
+      }
+      let checkEmail = await this.usersService.findOne({
+        email: createUserDto.email,
+      });
+      if (checkEmail) {
+        return res.status(HttpStatus.BAD_REQUEST).send({
+          success: false,
+          meassge: 'Email Already Exist',
+          data: null,
+        });
+      }
+      createUserDto['password'] = await passwordEncryption(
+        createUserDto.password,
+      );
+
+      let user = await this.usersService.create(createUserDto);
+      return res.status(HttpStatus.CREATED).send({
+        success: true,
+        message: 'User Create  SuccessFully',
+        data: null,
+      });
+    } catch (error) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        success: false,
+        message: error.meassge,
+        data: null,
+      });
+    }
+  }
   @Post('/login')
   @ApiOperation({ description: 'This Api is used for admin login' })
   async login(@Body() loginDto: UserLoginDto, @Res() res: Response) {
@@ -86,32 +142,136 @@ export class UsersController {
     }
   }
 
-  @Post('/send')
-  async create(@Body() createUserDto: CreateUserDto) {
-    createUserDto['password'] = await passwordEncryption(
-      createUserDto.password,
-    );
+  @Post()
+  @ApiOperation({ description: 'This api used for sub admin signup' })
+  async create(@Res() res: Response, @Body() createUserDto: CreateUserDto) {
+    try {
+      let checkUserName = await this.usersService.findOne({
+        userName: createUserDto.userName,
+      });
+      if (checkUserName) {
+        return res.status(HttpStatus.BAD_REQUEST).send({
+          success: false,
+          message: 'Username Exist',
+          data: null,
+        });
+      }
+      let checkEmail = await this.usersService.findOne({
+        email: createUserDto.email,
+      });
+      if (checkEmail) {
+        return res.status(HttpStatus.BAD_REQUEST).send({
+          success: false,
+          message: 'Email Already Exist',
+          data: null,
+        });
+      }
+      createUserDto['password'] = await passwordEncryption(
+        createUserDto.password,
+      );
+      createUserDto['roleId'] = 1;
+      let user = await this.usersService.create(createUserDto);
 
-    return this.usersService.create(createUserDto);
+      return res.status(HttpStatus.CREATED).send({
+        success: true,
+        message: 'User Created',
+        data: null,
+      });
+    } catch (error) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        success: false,
+        message: error.message,
+        data: null,
+      });
+    }
   }
+
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RoleGuard(RoleEnum.user))
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  async findAll(@Res() res: Response) {
+    try {
+      let userList = await this.usersService.findAll();
+      return res.status(HttpStatus.OK).send({
+        success: true,
+        message: 'User List',
+        data: userList,
+      });
+    } catch (error) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        success: false,
+        message: error.message,
+        data: null,
+      });
+    }
   }
+
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RoleGuard(RoleEnum.user))
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  async findOne(@Param('id') id: string, @Res() res: Response) {
+    try {
+      let user = await this.usersService.findOne({ id: +id });
+      if (user) {
+        return res.status(HttpStatus.OK).send({
+          success: false,
+          message: 'User Found',
+          data: user,
+        });
+      } else {
+        return res.status(HttpStatus.BAD_REQUEST).send({
+          success: false,
+          message: 'User Not Found',
+          data: null,
+        });
+      }
+    } catch (error) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        success: false,
+        error: error.meassge,
+        data: null,
+      });
+    }
   }
+
+  // @ApiBearerAuth()
+  // @UseGuards(JwtAuthGuard, RoleGuard(RoleEnum.user))
+  // @Patch(':id')
+  // update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+  //   return this.usersService.update(+id, updateUserDto);
+  // }
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RoleGuard(RoleEnum.user))
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  async update(
+    @Param('id') id: string,
+    @Body() UpdateUserDto: UpdateUserDto,
+    @Res() res: Response,
+  ) {
+    try {
+      let user = await this.usersService.findOne({ id: +id });
+      if (!user) {
+        return res.status(HttpStatus.BAD_REQUEST).send({
+          success: false,
+          message: 'User Not Found',
+          data: null,
+        });
+      } else {
+        let user = await this.usersService.update(+id, UpdateUserDto);
+        return res.status(HttpStatus.OK).send({
+          success: true,
+          message: 'User Update data SuccesFully',
+          data: user,
+        });
+      }
+    } catch (error) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        success: false,
+        message: error.message,
+        data: null,
+      });
+    }
   }
 
   @ApiBearerAuth()
@@ -121,11 +281,7 @@ export class UsersController {
     description:
       'This api is used to delete the user only admin can access this route',
   })
-  async remove(
-    @Param('id') id: string,
-    // @I18n() i18n: I18nContext,
-    @Res() res: Response,
-  ) {
+  async remove(@Param('id') id: string, @Res() res: Response) {
     try {
       let user = await this.usersService.findOne({ id: +id });
       if (user) {
@@ -171,7 +327,6 @@ export class UsersController {
         await this.usersService.update(user.id, userupdatedto);
         return res.status(HttpStatus.OK).send({
           success: true,
-          // message: i18n.t('common.UPDATED_SUCCESSFULLY'),
           message: 'Update SuccessFully',
           data: null,
         });
@@ -179,10 +334,50 @@ export class UsersController {
         return res.status(HttpStatus.NOT_FOUND).send({
           success: false,
           message: 'User Not Found ',
-          // message: i18n.t('common.USER_NOT_FOUND'),
           data: user,
         });
       }
+    } catch (error) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        success: false,
+        message: error.message,
+        data: null,
+      });
+    }
+  }
+
+  @Post('/get-address-nonce')
+  @ApiOperation({ description: 'This api used for generate nonce' })
+  async getAddressNonce(@Res() res: Response, @Body() nonceDto: UserNonceDto) {
+    try {
+      let isUserExists = await this.usersService.findOne({
+        walletAddress: nonceDto.walletAddress,
+      });
+
+      if (!isUserExists) {
+        let params = {
+          walletAddress: nonceDto.walletAddress,
+          roleId: 1,
+        };
+        await this.usersService.metaMaskUserCreation(params);
+      } else if (isUserExists.isBlocked === true) {
+        return res.status(HttpStatus.BAD_REQUEST).send({
+          success: false,
+
+          data: null,
+        });
+      }
+      let nonce = uuidv4();
+      let user = await this.usersService.findOne({
+        walletAddress: nonceDto.walletAddress,
+      });
+      user.nonce = nonce;
+      await user.save();
+      return res.status(HttpStatus.OK).send({
+        success: true,
+        data: nonce,
+        message: 'Nonce Generate SccesFully',
+      });
     } catch (error) {
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
         success: false,
@@ -206,7 +401,7 @@ export class UsersController {
       if (!user) {
         return res.status(HttpStatus.NOT_FOUND).send({
           success: true,
-          // message: i18n.t('common.EMAIL_NOT_FOUND'),
+
           message: 'Email Not Found',
           data: null,
         });
@@ -218,13 +413,6 @@ export class UsersController {
         user.id,
         resetPasswordToken,
       );
-      // console.log(
-      //   'email',
-      //   generateResetPasswordToken.email,
-      //   'and',
-      //   'token',
-      //   resetPasswordToken,
-      // );
 
       await this.mailService.resetPassword(
         generateResetPasswordToken.email,

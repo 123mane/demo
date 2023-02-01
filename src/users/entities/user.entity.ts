@@ -85,7 +85,11 @@ export class User extends Model<User> {
     allowNull: true,
   })
   networkId: string;
-
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+  })
+  isBlocked: boolean;
   @Column({
     type: DataType.STRING,
     allowNull: true,
