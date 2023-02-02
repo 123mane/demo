@@ -58,6 +58,9 @@ export class UsersService {
     if (param.userName) {
       where['userName'] = param.userName;
     }
+    if (param.firstName) {
+      where['firstName'] = param.firstName;
+    }
     return await this.userRepository.findOne({
       where,
       include: [

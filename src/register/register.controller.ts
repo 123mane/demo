@@ -11,13 +11,15 @@ import {
   Res,
   Query,
   UploadedFiles,
+  HttpStatus,
+  Next,
 } from '@nestjs/common';
 // import { CreateUploadDto } from './dto/uploadFloderDto';
 import { RegisterService } from './register.service';
-import { CreateRegisterDto } from './dto/create-register.dto';
+import { CreateRegisterDto, CreateUploadDto } from './dto/create-register.dto';
 import { UpdateRegisterDto } from './dto/update-register.dto';
 import { passwordEncryption } from 'src/helper/utilis';
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { multerOptions } from '../helper/multer/index';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { uploadImage, UploadFolderDto } from './entities/register.entity';
@@ -39,15 +41,56 @@ export class RegisterController {
   uploadimage(
     @UploadedFile() file: Express.Multer.File,
     @Query() query: UploadFolderDto,
+    @Body() CreateUploadDto: CreateUploadDto,
+    @Res() res: Response,
   ) {
     try {
       let params = {
         originalName: file.originalname,
       };
       let data = this.registerService.uploadimage(params);
-      return data;
+      return res.status(HttpStatus.OK).send({
+        succes: true,
+        message: 'File Uploaded SuccesFully',
+      });
     } catch (error) {
-      console.log(error);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        success: false,
+      });
+    }
+  }
+
+  @Patch(':id/image')
+  @ApiConsumes()
+  @UseInterceptors(FileInterceptor('file', multerOptions))
+  async FindandUpdateImage(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Query() query: UploadFolderDto,
+    @Body() CreateUploadDto: CreateUploadDto,
+    @Res() res: Response,
+  ) {
+    try {
+      let find = await this.registerService.findImage(+id);
+
+      if (!find) {
+        return res.status(HttpStatus.BAD_REQUEST).send({
+          success: false,
+          message: 'Image Not Found',
+          data: null,
+        });
+      } else {
+        return res.status(HttpStatus.OK).send({
+          success: true,
+          message: 'Updated SuccessFully Image',
+          data: find,
+        });
+      }
+    } catch (error) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        success: false,
+        error: error.message,
+      });
     }
   }
 

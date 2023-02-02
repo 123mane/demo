@@ -35,7 +35,8 @@ import { RoleGuard } from 'src/auth/guard/auth.roles';
 import { RoleEnum } from 'src/helper/enum/roleEnum';
 import { MailService } from 'src/mail/mail.service';
 import { updateResetPassword } from './dto/update-reset.dto';
-import { AuthModule } from 'src/auth/auth.module';
+import { UserDto } from './dto/user.dto';
+
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
@@ -83,7 +84,7 @@ export class UsersController {
       let user = await this.usersService.create(createUserDto);
       return res.status(HttpStatus.CREATED).send({
         success: true,
-        message: 'User Create  SuccessFully',
+        message: 'User Create SuccessFully',
         data: null,
       });
     } catch (error) {
@@ -113,7 +114,7 @@ export class UsersController {
         loginDto.password,
         isUserExists.password,
       );
-      // console.log('pasword', isPasswordValid);
+
       if (!isPasswordValid) {
         return res.status(HttpStatus.BAD_REQUEST).send({
           success: false,
@@ -187,6 +188,32 @@ export class UsersController {
   }
 
   @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('find')
+  async find(@Query() query: UserDto, @Res() res: Response) {
+    try {
+      let user = await this.usersService.findOne(query);
+      if (!user) {
+        return res.status(HttpStatus.BAD_REQUEST).send({
+          success: false,
+          message: 'User Not Found',
+          data: null,
+        });
+      }
+      return res.status(HttpStatus.OK).send({
+        success: true,
+        data: user,
+      });
+    } catch (error) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        success: false,
+        message: error.message,
+        data: null,
+      });
+    }
+  }
+
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RoleGuard(RoleEnum.user))
   @Get()
   async findAll(@Res() res: Response) {
@@ -234,13 +261,6 @@ export class UsersController {
     }
   }
 
-  // @ApiBearerAuth()
-  // @UseGuards(JwtAuthGuard, RoleGuard(RoleEnum.user))
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-  //   return this.usersService.update(+id, updateUserDto);
-  // }
-
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RoleGuard(RoleEnum.user))
   @Patch(':id')
@@ -258,6 +278,9 @@ export class UsersController {
           data: null,
         });
       } else {
+        UpdateUserDto['password'] = await passwordEncryption(
+          UpdateUserDto.password,
+        );
         let user = await this.usersService.update(+id, UpdateUserDto);
         return res.status(HttpStatus.OK).send({
           success: true,
@@ -363,7 +386,6 @@ export class UsersController {
       } else if (isUserExists.isBlocked === true) {
         return res.status(HttpStatus.BAD_REQUEST).send({
           success: false,
-
           data: null,
         });
       }
@@ -420,7 +442,6 @@ export class UsersController {
       );
       return res.status(HttpStatus.OK).send({
         success: true,
-        // message: i18n.t('common.EMAIL_RESET_PASSWORD_LINK'),
         message: 'Email_Reset_Password_Link',
         data: null,
       });
@@ -446,8 +467,7 @@ export class UsersController {
       await this.authService.verifyResetPasswordToken(tokenDto.token);
       return res.status(HttpStatus.OK).send({
         success: true,
-        // message: i18n.t('common.REST_TOKEN_VERIFIED'),
-        message: 'Rsest_Token_Verified',
+        message: 'Reset_Token_Verified',
         data: null,
       });
     } catch (error) {

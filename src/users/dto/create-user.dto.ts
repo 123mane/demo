@@ -26,7 +26,7 @@ export class CreateUserDto {
   @ApiProperty({ required: true })
   @IsString()
   @IsNotEmpty()
-  @MaxLength(5)
+  @MaxLength(15)
   lastName: string;
 
   @ApiProperty({ required: true })

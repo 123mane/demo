@@ -22,6 +22,9 @@ export class RegisterService {
     return await this.MultiMeadiaRepository.create(params);
   }
 
+  async findImage(id: number) {
+    return await this.MultiMeadiaRepository.findOne({ where: { id: id } });
+  }
   async findAll() {
     return await this.RegisterRepo.findAll({
       include: [

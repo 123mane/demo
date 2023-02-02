@@ -33,3 +33,8 @@ export class CreateRegisterDto {
   @MinLength(10)
   mobileno: string;
 }
+export class CreateUploadDto {
+  @ApiProperty({ required: true, type: 'file' })
+  @IsOptional()
+  file: string;
+}

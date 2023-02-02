@@ -21,7 +21,6 @@ export class AuthService {
   }
 
   async verifyResetPasswordToken(token: string) {
-    
     return await this.jwtService.verify(token);
   }
   async getUserBasedOnToken(payload: any): Promise<User> {
