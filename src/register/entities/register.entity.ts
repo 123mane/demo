@@ -33,7 +33,7 @@ export class Register extends Model<Register> {
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
-    defaultValue: 5,
+    defaultValue: 6,
   })
   userId: number;
 

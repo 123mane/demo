@@ -14,7 +14,7 @@ import {
   Req,
   Query,
 } from '@nestjs/common';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { UsersService } from './users.service';
 import { AuthService } from '../auth/auth.service';
 import {
@@ -36,6 +36,8 @@ import { RoleEnum } from 'src/helper/enum/roleEnum';
 import { MailService } from 'src/mail/mail.service';
 import { updateResetPassword } from './dto/update-reset.dto';
 import { UserDto } from './dto/user.dto';
+import { convertArrayToCSV } from 'convert-array-to-csv';
+import { convertor } from 'convert-array-to-csv';
 
 @ApiTags('Users')
 @Controller('users')
@@ -189,9 +191,32 @@ export class UsersController {
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @Get('/data')
+  async findall(@Res() res: Response, @Req() req: Request) {
+    try {
+      let data = req.user;
+      console.log('data', data);
+      let walletAddress = req.user['userName'];
+      console.log(walletAddress);
+      let user = await this.usersService.findOne(walletAddress);
+      return res
+        .status(HttpStatus.OK)
+        .send({ success: true, message: 'User Details', data: user });
+    } catch (error) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        success: false,
+        message: error.message,
+        data: null,
+      });
+    }
+  }
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Get('find')
   async find(@Query() query: UserDto, @Res() res: Response) {
     try {
+      // let walletAddress = req.user['email'];
+      // console.log(walletAddress);
       let user = await this.usersService.findOne(query);
       if (!user) {
         return res.status(HttpStatus.BAD_REQUEST).send({
@@ -219,6 +244,7 @@ export class UsersController {
   async findAll(@Res() res: Response) {
     try {
       let userList = await this.usersService.findAll();
+
       return res.status(HttpStatus.OK).send({
         success: true,
         message: 'User List',

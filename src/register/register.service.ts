@@ -30,12 +30,28 @@ export class RegisterService {
       include: [
         { model: User, attributes: ['firstName', 'LastName', 'walletAddress'] },
       ],
+      raw: true,
       // order: [['createdAt']],
     });
   }
 
-  async findOne(id: number) {
-    return await this.RegisterRepo.findOne({ where: { id: id } });
+  // async findOne(id: number) {
+  //   return await this.RegisterRepo.findOne({ where: { id: id } });
+  // }
+  async findOne(param: any): Promise<Register> {
+    let where = {};
+    if (param.id) {
+      where['id'] = param.id;
+    }
+    if (param.email) {
+      where['email'] = param.email;
+    }
+    if (param.userName) {
+      where['username'] = param.username;
+    }
+    return await this.RegisterRepo.findOne({
+      where,
+    });
   }
 
   async update(id: number, updateRegisterDto: UpdateRegisterDto) {
