@@ -13,18 +13,28 @@ import {
   UploadedFiles,
   HttpStatus,
   Next,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 // import { CreateUploadDto } from './dto/uploadFloderDto';
 import { RegisterService } from './register.service';
 import { CreateRegisterDto, CreateUploadDto } from './dto/create-register.dto';
 import { UpdateRegisterDto } from './dto/update-register.dto';
 import { passwordEncryption } from 'src/helper/utilis';
-import { NextFunction, Request, Response } from 'express';
+import { Response } from 'express';
 import { multerOptions } from '../helper/multer/index';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { uploadImage, UploadFolderDto } from './entities/register.entity';
-import { ApiConsumes, ApiTags } from '@nestjs/swagger';
-import { arrayToCSV } from 'src/helper/utilis/index.utilis';
+import {
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
+import { arrayToCSV, convertCsvToArray } from 'src/helper/utilis/index.utilis';
+import { join } from 'path';
+import { JwtAuthGuard } from 'src/auth/guard/auth.guard';
+import { csvFileUploadOptions } from 'src/helper/multer/csvUpload';
 @ApiTags('Register')
 @Controller('register')
 export class RegisterController {
@@ -133,7 +143,7 @@ export class RegisterController {
   async findAll(@Res() res: Response) {
     try {
       let user = await this.registerService.findAll();
-      let data = arrayToCSV(user);
+      // arrayToCSV(user);
       if (!user) {
         return res.status(HttpStatus.BAD_REQUEST).send({
           success: false,
@@ -143,8 +153,64 @@ export class RegisterController {
       } else {
         return res.status(HttpStatus.OK).send({
           success: true,
-          data: data,
+          data: user,
         });
+      }
+    } catch (error) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        success: false,
+        message: error.message,
+        data: null,
+      });
+    }
+  }
+  @ApiOperation({ description: 'this api is used for nft meta data upload' })
+  @ApiBearerAuth()
+  @Post('/metaData')
+  @UseGuards(JwtAuthGuard)
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('file', csvFileUploadOptions))
+  async csvFileUpload(
+    @Req() req: any,
+    @UploadedFile() file: Express.Multer.File,
+    @Body() createUploadDto: CreateUploadDto,
+    @Res() res: Response,
+  ) {
+    try {
+      let basePathOfCsv = '../../../upload';
+      let filePath = join(__dirname, basePathOfCsv, file.filename);
+      console.log('file', filePath);
+      let data: any = await convertCsvToArray(filePath);
+
+      console.log('data', data);
+      return res.status(HttpStatus.CREATED).send({
+        success: true,
+        data: data,
+      });
+    } catch (error) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        success: false,
+        message: error.message,
+        data: null,
+      });
+    }
+  }
+
+  @Get('/dwonload')
+  async downloadCsvfile(@Res() res: Response) {
+    try {
+      let user = await this.registerService.findAll();
+      let data = arrayToCSV(user);
+      if (!user) {
+        return res.status(HttpStatus.BAD_REQUEST).send({
+          success: false,
+          message: 'User Not Found',
+          data: null,
+        });
+      } else {
+        res.setHeader('Content-disposition', 'attachment; filename=data.csv');
+        res.set('Content-Type', 'text/csv');
+        res.status(HttpStatus.OK).send(data);
       }
     } catch (error) {
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
