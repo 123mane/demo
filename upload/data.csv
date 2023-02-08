@@ -1,0 +1,3 @@
+id,username,password,email,userId,mobileno,createdAt,updatedAt,user.firstName,user.LastName,user.walletAddress
+4,string,$2b$10$AITggYIUehg8S9GFJxj8guWa0q0UCe0XMZLSvGeY2caP3VKjL6IA6,string@12gmail.com,6,9009696441,Thu Feb 02 2023 14:05:22 GMT+0530 (India Standard Time),Thu Feb 02 2023 14:05:22 GMT+0530 (India Standard Time),Manish,string,string
+5,Manish,$2b$10$E2yD7yRgPtHoaWVNOyjA2.n8LjLPmjdgvFyzdt7AFPLHEe8Yj5BTC,MAnish@123gmail.com,6,9009696441,Thu Feb 02 2023 15:14:07 GMT+0530 (India Standard Time),Thu Feb 02 2023 15:14:07 GMT+0530 (India Standard Time),Manish,string,string

@@ -12,7 +12,6 @@ export class AppController {
   @Get()
   getHello(): string {
     const job = this.scheduleregister.getCronJob('test');
-    job.stop();
     return this.appService.getHello();
   }
 }

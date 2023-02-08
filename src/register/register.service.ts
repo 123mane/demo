@@ -34,7 +34,10 @@ export class RegisterService {
       // order: [['createdAt']],
     });
   }
-
+  async createBulkCategory(data: any) {
+    console.log('data', data);
+    return await this.RegisterRepo.bulkCreate(data);
+  }
   // async findOne(id: number) {
   //   return await this.RegisterRepo.findOne({ where: { id: id } });
   // }

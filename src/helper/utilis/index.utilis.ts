@@ -6,23 +6,22 @@ export function arrayToCSV(data) {
   return `"${csv.join('"\n"').replace(/,/g, '","')}"`;
 }
 export function convertCsvToArray(filePath: string) {
-  return new Promise((resolve, reject) => {
-    try {
-      const file = xlsx.readFile(filePath);
-      let data = [];
-      const sheets = file.SheetNames;
-      for (let i = 0; i < sheets.length; i++) {
-        const temp = xlsx.utils.sheet_to_json(file.Sheets[file.SheetNames[i]]);
-        temp.forEach((res, i) => {
-          if (res.attributes) {
-            res['attributes'] = JSON.parse(res.attributes);
-          }
-          data.push(res);
-        });
-      }
-      return resolve(data);
-    } catch (error) {
-      throw Error(error);
+  try {
+    const file = xlsx.readFile(filePath);
+    let data = [];
+    const sheets = file.SheetNames;
+    for (let i = 0; i < sheets.length; i++) {
+      const temp = xlsx.utils.sheet_to_json(file.Sheets[file.SheetNames[i]]);
+      temp.forEach((res, i) => {
+        if (res.attributes) {
+          res['attributes'] = JSON.parse(res.attributes);
+        }
+        data.push(res);
+      });
     }
-  });
+
+    return data;
+  } catch (error) {
+    throw Error(error);
+  }
 }

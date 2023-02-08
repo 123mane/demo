@@ -16,6 +16,7 @@ import {
   UseGuards,
   Req,
 } from '@nestjs/common';
+let csvToJson = require('convert-csv-to-json');
 // import { CreateUploadDto } from './dto/uploadFloderDto';
 import { RegisterService } from './register.service';
 import { CreateRegisterDto, CreateUploadDto } from './dto/create-register.dto';
@@ -143,7 +144,7 @@ export class RegisterController {
   async findAll(@Res() res: Response) {
     try {
       let user = await this.registerService.findAll();
-      // arrayToCSV(user);
+      //  var data= arrayToCSV(user);
       if (!user) {
         return res.status(HttpStatus.BAD_REQUEST).send({
           success: false,
@@ -165,9 +166,9 @@ export class RegisterController {
     }
   }
   @ApiOperation({ description: 'this api is used for nft meta data upload' })
-  @ApiBearerAuth()
+  // @ApiBearerAuth()
   @Post('/metaData')
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(FileInterceptor('file', csvFileUploadOptions))
   async csvFileUpload(
@@ -177,12 +178,11 @@ export class RegisterController {
     @Res() res: Response,
   ) {
     try {
-      let basePathOfCsv = '../../../upload';
+      let basePathOfCsv = '../../upload';
       let filePath = join(__dirname, basePathOfCsv, file.filename);
-      console.log('file', filePath);
-      let data: any = await convertCsvToArray(filePath);
-
+      let data: any = convertCsvToArray(filePath);
       console.log('data', data);
+      data = await this.registerService.createBulkCategory(data);
       return res.status(HttpStatus.CREATED).send({
         success: true,
         data: data,
