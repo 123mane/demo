@@ -24,6 +24,7 @@
   "ROLE_CREATED": "role created successfully",
   "ROLE_DELETE": "role deleted successfully",
   "ROLE_UPDATE": "role updated successfully",
+  "USER_UPDATE": "user updated successfully",
   "ROLE_LIST": "role list ",
   "FAQ_LIST": "faq list",
   "FAQ_NOT_FOUND": "Faq not found",

@@ -11,12 +11,29 @@ import { RoleModule } from './role/role.module';
 import { PermissionModule } from './permission/permission.module';
 import config from './config/config';
 import { MailModule } from './mail/mail.module';
+import {
+  AcceptLanguageResolver,
+  HeaderResolver,
+  I18nModule,
+} from 'nestjs-i18n';
+import { join } from 'path';
 
 const { db_host, db_name, db_password, db_port, db_username } =
   config.databaseConfig;
 
 @Module({
   imports: [
+    I18nModule.forRoot({
+      fallbackLanguage: 'en',
+      loaderOptions: { path: join(__dirname, '/language/'), watch: true },
+      resolvers: [
+        {
+          use: HeaderResolver,
+          options: ['lang'],
+        },
+        AcceptLanguageResolver,
+      ],
+    }),
     ScheduleModule.forRoot(),
     UsersModule,
     SequelizeModule.forRoot({

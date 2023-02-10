@@ -21,6 +21,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@fastify/static": "^6.8.0",
+    "@fastify/view": "^7.4.1",
     "@nestjs-modules/mailer": "^1.8.1",
     "@nestjs/common": "^8.0.0",
     "@nestjs/config": "^2.2.0",
@@ -29,6 +31,7 @@
     "@nestjs/mapped-types": "*",
     "@nestjs/passport": "^9.0.0",
     "@nestjs/platform-express": "^8.0.0",
+    "@nestjs/platform-fastify": "^9.3.7",
     "@nestjs/schedule": "^2.1.0",
     "@nestjs/sequelize": "^9.0.0",
     "@nestjs/swagger": "^6.1.4",
@@ -44,6 +47,7 @@
     "csvtojson": "^2.0.10",
     "dotenv": "^16.0.3",
     "express-handlebars": "^5.3.5",
+    "fastify-file-interceptor": "^1.0.8",
     "handlebars": "^4.7.7",
     "mysql2": "^3.0.1",
     "nestjs-i18n": "^10.2.6",

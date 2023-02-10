@@ -36,8 +36,8 @@ import { RoleEnum } from 'src/helper/enum/roleEnum';
 import { MailService } from 'src/mail/mail.service';
 import { updateResetPassword } from './dto/update-reset.dto';
 import { UserDto } from './dto/user.dto';
-import { convertArrayToCSV } from 'convert-array-to-csv';
-import { convertor } from 'convert-array-to-csv';
+import { I18n, I18nContext } from 'nestjs-i18n';
+import { FastifyReply, FastifyRequest } from 'fastify';
 
 @ApiTags('Users')
 @Controller('users')
@@ -55,7 +55,8 @@ export class UsersController {
     description: 'this Api used for  admin panel to create account by admin',
   })
   async subcreate(
-    @Res() res: Response,
+    @I18n() i18n: I18nContext,
+    @Res() res: FastifyReply,
     @Body() createUserDto: AdminAccountCreateDto,
   ) {
     try {
@@ -63,9 +64,9 @@ export class UsersController {
         userName: createUserDto.userName,
       });
       if (checkUserName) {
-        return res.status(HttpStatus.BAD_REQUEST).send({
+        return res.code(HttpStatus.BAD_REQUEST).send({
           success: false,
-          message: 'Username Already Exist',
+          message: i18n.t('common.USERNAME_EXIST'),
           data: null,
         });
       }
@@ -73,9 +74,9 @@ export class UsersController {
         email: createUserDto.email,
       });
       if (checkEmail) {
-        return res.status(HttpStatus.BAD_REQUEST).send({
+        return res.code(HttpStatus.BAD_REQUEST).send({
           success: false,
-          meassge: 'Email Already Exist',
+          meassge: i18n.t('common.EMAIL_EXIST'),
           data: null,
         });
       }
@@ -84,13 +85,13 @@ export class UsersController {
       );
 
       let user = await this.usersService.create(createUserDto);
-      return res.status(HttpStatus.CREATED).send({
+      return res.code(HttpStatus.CREATED).send({
         success: true,
-        message: 'User Create SuccessFully',
+        message: i18n.t('common.USER_CREATED'),
         data: null,
       });
     } catch (error) {
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+      return res.code(HttpStatus.INTERNAL_SERVER_ERROR).send({
         success: false,
         message: error.meassge,
         data: null,
@@ -99,14 +100,18 @@ export class UsersController {
   }
   @Post('/login')
   @ApiOperation({ description: 'This Api is used for admin login' })
-  async login(@Body() loginDto: UserLoginDto, @Res() res: Response) {
+  async login(
+    @Body() loginDto: UserLoginDto,
+    @I18n() i18n: I18nContext,
+    @Res() res: FastifyReply,
+  ) {
     try {
       const isUserExists = await this.usersService.checkNameAndEmail(
         loginDto.userName,
       );
 
       if (!isUserExists) {
-        return res.status(HttpStatus.NOT_FOUND).send({
+        return res.code(HttpStatus.NOT_FOUND).send({
           success: false,
           data: null,
         });
@@ -118,7 +123,7 @@ export class UsersController {
       );
 
       if (!isPasswordValid) {
-        return res.status(HttpStatus.BAD_REQUEST).send({
+        return res.code(HttpStatus.BAD_REQUEST).send({
           success: false,
           data: null,
         });
@@ -132,12 +137,12 @@ export class UsersController {
         userName: isUserExists.userName,
         email: isUserExists.email,
       });
-      return res.status(HttpStatus.OK).send({
+      return res.code(HttpStatus.OK).send({
         success: true,
         data: { token },
       });
     } catch (error) {
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+      return res.code(HttpStatus.INTERNAL_SERVER_ERROR).send({
         success: false,
         message: error.message,
         data: null,
@@ -147,15 +152,19 @@ export class UsersController {
 
   @Post()
   @ApiOperation({ description: 'This api used for sub admin signup' })
-  async create(@Res() res: Response, @Body() createUserDto: CreateUserDto) {
+  async create(
+    @Res() res: FastifyReply,
+    @I18n() i18n: I18nContext,
+    @Body() createUserDto: CreateUserDto,
+  ) {
     try {
       let checkUserName = await this.usersService.findOne({
         userName: createUserDto.userName,
       });
       if (checkUserName) {
-        return res.status(HttpStatus.BAD_REQUEST).send({
+        return res.code(HttpStatus.BAD_REQUEST).send({
           success: false,
-          message: 'Username Exist',
+          message: i18n.t('common.USERNAME_EXIST'),
           data: null,
         });
       }
@@ -163,9 +172,9 @@ export class UsersController {
         email: createUserDto.email,
       });
       if (checkEmail) {
-        return res.status(HttpStatus.BAD_REQUEST).send({
+        return res.code(HttpStatus.BAD_REQUEST).send({
           success: false,
-          message: 'Email Already Exist',
+          message: i18n.t('common.EMAIL_EXIST'),
           data: null,
         });
       }
@@ -175,13 +184,13 @@ export class UsersController {
       createUserDto['roleId'] = 1;
       let user = await this.usersService.create(createUserDto);
 
-      return res.status(HttpStatus.CREATED).send({
+      return res.code(HttpStatus.CREATED).send({
         success: true,
-        message: 'User Created',
+        message: i18n.t('common.USER_CREATED'),
         data: null,
       });
     } catch (error) {
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+      return res.code(HttpStatus.INTERNAL_SERVER_ERROR).send({
         success: false,
         message: error.message,
         data: null,
@@ -192,18 +201,24 @@ export class UsersController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('/data')
-  async findall(@Res() res: Response, @Req() req: Request) {
+  async findall(
+    @Res() res: FastifyReply,
+    @I18n() i18n: I18nContext,
+    @Req() req: any,
+  ) {
     try {
       let data = req.user;
       console.log('data', data);
       let walletAddress = req.user['userName'];
       console.log(walletAddress);
       let user = await this.usersService.findOne(walletAddress);
-      return res
-        .status(HttpStatus.OK)
-        .send({ success: true, message: 'User Details', data: user });
+      return res.code(HttpStatus.OK).send({
+        success: true,
+        message: i18n.t('common.USER_DETAIL'),
+        data: user,
+      });
     } catch (error) {
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+      return res.code(HttpStatus.INTERNAL_SERVER_ERROR).send({
         success: false,
         message: error.message,
         data: null,
@@ -213,24 +228,28 @@ export class UsersController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('find')
-  async find(@Query() query: UserDto, @Res() res: Response) {
+  async find(
+    @Query() query: UserDto,
+    @Res() res: FastifyReply,
+    @I18n() i18n: I18nContext,
+  ) {
     try {
       // let walletAddress = req.user['email'];
       // console.log(walletAddress);
       let user = await this.usersService.findOne(query);
       if (!user) {
-        return res.status(HttpStatus.BAD_REQUEST).send({
+        return res.code(HttpStatus.BAD_REQUEST).send({
           success: false,
-          message: 'User Not Found',
+          message: i18n.t('common.USER_NOT_FOUND'),
           data: null,
         });
       }
-      return res.status(HttpStatus.OK).send({
+      return res.code(HttpStatus.OK).send({
         success: true,
         data: user,
       });
     } catch (error) {
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+      return res.code(HttpStatus.INTERNAL_SERVER_ERROR).send({
         success: false,
         message: error.message,
         data: null,
@@ -241,17 +260,17 @@ export class UsersController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RoleGuard(RoleEnum.user))
   @Get()
-  async findAll(@Res() res: Response) {
+  async findAll(@Res() res: FastifyReply, @I18n() i18n: I18nContext) {
     try {
       let userList = await this.usersService.findAll();
 
-      return res.status(HttpStatus.OK).send({
+      return res.code(HttpStatus.OK).send({
         success: true,
-        message: 'User List',
+        message: i18n.t('common.USER_LIST'),
         data: userList,
       });
     } catch (error) {
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+      return res.code(HttpStatus.INTERNAL_SERVER_ERROR).send({
         success: false,
         message: error.message,
         data: null,
@@ -262,24 +281,28 @@ export class UsersController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RoleGuard(RoleEnum.user))
   @Get(':id')
-  async findOne(@Param('id') id: string, @Res() res: Response) {
+  async findOne(
+    @Param('id') id: string,
+    @Res() res: FastifyReply,
+    @I18n() i18n: I18nContext,
+  ) {
     try {
       let user = await this.usersService.findOne({ id: +id });
       if (user) {
-        return res.status(HttpStatus.OK).send({
+        return res.code(HttpStatus.OK).send({
           success: false,
-          message: 'User Found',
+          message: i18n.t('common.USER_DETAIL'),
           data: user,
         });
       } else {
-        return res.status(HttpStatus.BAD_REQUEST).send({
+        return res.code(HttpStatus.BAD_REQUEST).send({
           success: false,
-          message: 'User Not Found',
+          message: i18n.t('common.USER_NOT_FOUND'),
           data: null,
         });
       }
     } catch (error) {
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+      return res.code(HttpStatus.INTERNAL_SERVER_ERROR).send({
         success: false,
         error: error.meassge,
         data: null,
@@ -293,14 +316,15 @@ export class UsersController {
   async update(
     @Param('id') id: string,
     @Body() UpdateUserDto: UpdateUserDto,
-    @Res() res: Response,
+    @Res() res: FastifyReply,
+    @I18n() i18n: I18nContext,
   ) {
     try {
       let user = await this.usersService.findOne({ id: +id });
       if (!user) {
-        return res.status(HttpStatus.BAD_REQUEST).send({
+        return res.code(HttpStatus.BAD_REQUEST).send({
           success: false,
-          message: 'User Not Found',
+          message: i18n.t('common.USER_NOT_FOUND'),
           data: null,
         });
       } else {
@@ -308,14 +332,14 @@ export class UsersController {
           UpdateUserDto.password,
         );
         let user = await this.usersService.update(+id, UpdateUserDto);
-        return res.status(HttpStatus.OK).send({
+        return res.code(HttpStatus.OK).send({
           success: true,
-          message: 'User Update data SuccesFully',
+          message: i18n.t('common.USER_UPDATED'),
           data: user,
         });
       }
     } catch (error) {
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+      return res.code(HttpStatus.INTERNAL_SERVER_ERROR).send({
         success: false,
         message: error.message,
         data: null,
@@ -330,27 +354,29 @@ export class UsersController {
     description:
       'This api is used to delete the user only admin can access this route',
   })
-  async remove(@Param('id') id: string, @Res() res: Response) {
+  async remove(
+    @Param('id') id: string,
+    @Res() res: FastifyReply,
+    @I18n() i18n: I18nContext,
+  ) {
     try {
       let user = await this.usersService.findOne({ id: +id });
       if (user) {
         await user.destroy();
-        return res.status(HttpStatus.OK).send({
+        return res.code(HttpStatus.OK).send({
           success: true,
-
-          message: 'User Deleted',
+          message: i18n.t('common.USER_DELETED'),
           data: null,
         });
       } else {
-        return res.status(HttpStatus.NOT_FOUND).send({
+        return res.code(HttpStatus.NOT_FOUND).send({
           success: false,
-
-          message: 'User Not Found',
-          data: user,
+          message: i18n.t('common.USER_NOT_FOUND'),
+          data: null,
         });
       }
     } catch (error) {
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+      return res.code(HttpStatus.INTERNAL_SERVER_ERROR).send({
         success: false,
         message: error.message,
         data: null,
@@ -368,26 +394,27 @@ export class UsersController {
   async updateRolePermission(
     @Param('id') id: string,
     @Body() userupdatedto: UpdateUserRoleDto,
-    @Res() res: Response,
+    @Res() res: FastifyReply,
+    @I18n() i18n: I18nContext,
   ) {
     try {
       let user = await this.usersService.findOne({ id: +id });
       if (user) {
         await this.usersService.update(user.id, userupdatedto);
-        return res.status(HttpStatus.OK).send({
+        return res.code(HttpStatus.OK).send({
           success: true,
-          message: 'Update SuccessFully',
+          message: i18n.t('common.ROLE_UPDATED'),
           data: null,
         });
       } else {
-        return res.status(HttpStatus.NOT_FOUND).send({
+        return res.code(HttpStatus.NOT_FOUND).send({
           success: false,
-          message: 'User Not Found ',
+          message: i18n.t('common.USER_NOT_FOUND'),
           data: user,
         });
       }
     } catch (error) {
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+      return res.code(HttpStatus.INTERNAL_SERVER_ERROR).send({
         success: false,
         message: error.message,
         data: null,
@@ -397,7 +424,11 @@ export class UsersController {
 
   @Post('/get-address-nonce')
   @ApiOperation({ description: 'This api used for generate nonce' })
-  async getAddressNonce(@Res() res: Response, @Body() nonceDto: UserNonceDto) {
+  async getAddressNonce(
+    @Res() res: FastifyReply,
+    @Body() nonceDto: UserNonceDto,
+    @I18n() i18n: I18nContext,
+  ) {
     try {
       let isUserExists = await this.usersService.findOne({
         walletAddress: nonceDto.walletAddress,
@@ -410,8 +441,9 @@ export class UsersController {
         };
         await this.usersService.metaMaskUserCreation(params);
       } else if (isUserExists.isBlocked === true) {
-        return res.status(HttpStatus.BAD_REQUEST).send({
+        return res.code(HttpStatus.BAD_REQUEST).send({
           success: false,
+          message: i18n.t('common.USER_BLOCKED'),
           data: null,
         });
       }
@@ -421,13 +453,13 @@ export class UsersController {
       });
       user.nonce = nonce;
       await user.save();
-      return res.status(HttpStatus.OK).send({
+      return res.code(HttpStatus.OK).send({
         success: true,
         data: nonce,
-        message: 'Nonce Generate SccesFully',
+        message: i18n.t('common.NONCE_GET"'),
       });
     } catch (error) {
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+      return res.code(HttpStatus.INTERNAL_SERVER_ERROR).send({
         success: false,
         message: error.message,
         data: null,
@@ -440,17 +472,17 @@ export class UsersController {
   })
   @Post('/generate-reset-password-token')
   async generateResetPasswordToken(
-    @Res() res: Response,
+    @Res() res: FastifyReply,
+    @I18n() i18n: I18nContext,
     @Body() generateResetPasswordToken: generateResetPasswordToken,
   ) {
     try {
       const user = await this.usersService.findOne(generateResetPasswordToken);
 
       if (!user) {
-        return res.status(HttpStatus.NOT_FOUND).send({
+        return res.code(HttpStatus.NOT_FOUND).send({
           success: true,
-
-          message: 'Email Not Found',
+          message: i18n.t('common.EMAIL_NOT_FOUND'),
           data: null,
         });
       }
@@ -466,13 +498,13 @@ export class UsersController {
         generateResetPasswordToken.email,
         resetPasswordToken,
       );
-      return res.status(HttpStatus.OK).send({
+      return res.code(HttpStatus.OK).send({
         success: true,
-        message: 'Email_Reset_Password_Link',
+        message: i18n.t('common.EMAIL_RESET_PASSWORD_LINK'),
         data: null,
       });
     } catch (error) {
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+      return res.code(HttpStatus.INTERNAL_SERVER_ERROR).send({
         success: false,
         message: error.message,
         data: null,
@@ -486,14 +518,14 @@ export class UsersController {
   async verifyResetPasswordToken(
     @Req() req: any,
     @Query() tokenDto: ResetPasswordTokenDto,
-
-    @Res() res: Response,
+    @Res() res: FastifyReply,
+    @I18n() i18n: I18nContext,
   ) {
     try {
       await this.authService.verifyResetPasswordToken(tokenDto.token);
-      return res.status(HttpStatus.OK).send({
+      return res.code(HttpStatus.OK).send({
         success: true,
-        message: 'Reset_Token_Verified',
+        message: i18n.t('common.REST_TOKEN_VERIFIED'),
         data: null,
       });
     } catch (error) {
@@ -501,7 +533,7 @@ export class UsersController {
       if (error.name === 'TokenExpiredError') {
         statusCode = HttpStatus.NOT_ACCEPTABLE;
       }
-      return res.status(statusCode).send({
+      return res.code(statusCode).send({
         success: false,
         message: error.message,
         data: null,
@@ -513,15 +545,16 @@ export class UsersController {
   @Post('/reset-password')
   async updateResetPassword(
     @Body() updateResetPasswordDto: updateResetPassword,
-    @Res() res: Response,
+    @Res() res: FastifyReply,
+    @I18n() i18n: I18nContext,
   ) {
     const { password, token } = updateResetPasswordDto;
     try {
       const user = await this.usersService.resetTokenExists(token);
       if (!user) {
-        return res.status(HttpStatus.NOT_FOUND).send({
+        return res.code(HttpStatus.NOT_FOUND).send({
           success: false,
-          message: 'Token_Does_not_Exist',
+          message: i18n.t('common.RESET_TOKEN_DOES_NOT_EXIST'),
           data: null,
         });
       }
@@ -529,9 +562,9 @@ export class UsersController {
       let hashedPassword = await passwordEncryption(password);
       await this.usersService.updateResetPassword(hashedPassword, user.id);
       await this.usersService.deleteResetPassword(user.id);
-      return res.status(HttpStatus.OK).send({
+      return res.code(HttpStatus.OK).send({
         success: true,
-        message: 'Password_Changed',
+        message: i18n.t('common.PASSWORD_CHANGED'),
         data: null,
       });
     } catch (error) {
@@ -539,7 +572,7 @@ export class UsersController {
       if (error.name === 'TokenExpiredError') {
         statusCode = HttpStatus.NOT_ACCEPTABLE;
       }
-      return res.status(statusCode).send({
+      return res.code(statusCode).send({
         success: false,
         message: error.message,
         data: null,

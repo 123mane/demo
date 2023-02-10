@@ -3,16 +3,23 @@ import {
   ValidationError,
   ValidationPipe,
 } from '@nestjs/common';
+import { contentParser } from 'fastify-file-interceptor';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { normalizeValidationError } from './helper/utilis/expection.utils';
 import { AppModule } from './app.module';
-import * as hbs from 'express-handlebars';
-import { NestExpressApplication } from '@nestjs/platform-express';
+import {
+  FastifyAdapter,
+  NestFastifyApplication,
+} from '@nestjs/platform-fastify';
+
 import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestFastifyApplication>(
+    AppModule,
+    new FastifyAdapter(),
+  );
 
   const config = new DocumentBuilder()
     .setTitle('Dummy')
@@ -33,12 +40,16 @@ async function bootstrap() {
       },
     }),
   );
-
-  app.useStaticAssets(join(__dirname, '..', 'public'));
-  app.setBaseViewsDir(join(__dirname, '..', 'views'));
-  app.engine('hbs', hbs({ extname: 'hbs' }));
-  app.setViewEngine('hbs');
-
-  await app.listen(4002);
+  app.register(contentParser)
+  app.useStaticAssets({
+    root: join(__dirname, '..', 'public'),
+  });
+  app.setViewEngine({
+    engine: {
+      handlebars: require('handlebars'),
+    },
+    templates: join(__dirname, '..', 'views'),
+  });
+  await app.listen(3000);
 }
 bootstrap();
