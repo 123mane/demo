@@ -42,7 +42,7 @@ export class PermissionController {
 
   @Get()
   async findAll(@Res() res: FastifyReply, @I18n() i18n: I18nContext) {
-    // return this.permissionService.findAll();
+
     try {
       let permission = await this.permissionService.findAll();
       if (permission) {
