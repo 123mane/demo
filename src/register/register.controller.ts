@@ -19,11 +19,11 @@ import { RegisterService } from './register.service';
 import {
   CreateRegisterDto,
   CreateUploadDto,
+  EmailDto,
   ReadWalletUserDto,
 } from './dto/create-register.dto';
 import { UpdateRegisterDto } from './dto/update-register.dto';
 import { passwordEncryption } from 'src/helper/utilis';
-import { Response } from 'express';
 import { multerOptions } from '../helper/multer/index';
 import { UploadFolderDto } from './entities/register.entity';
 import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -320,7 +320,7 @@ export class RegisterController {
       let user = await this.registerService.filter(query);
       return res.code(HttpStatus.OK).send({
         success: true,
-        message: i18n.t('common.USER_LIST'),
+        message: i18n.t('common.DATA_SHOW_AND_COUNT'),
         data: user,
       });
     } catch (error) {
@@ -329,6 +329,31 @@ export class RegisterController {
         success: false,
         message: error.message,
         data: null,
+      });
+    }
+  }
+
+  @Get('/count')
+  async findandcount(
+    @Query() query: EmailDto,
+    @I18n() i18n: I18nContext,
+    @Res() res: FastifyReply,
+  ) {
+    try {
+      let data = await this.registerService.findAllandCount(
+        query.email,
+        query.username,
+      );
+      return res.code(HttpStatus.OK).send({
+        success: true,
+        data: data,
+        message: i18n.t('common.DATA_SHOW_AND_COUNT'),
+      });
+    } catch (error) {
+      return res.code(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        success: false,
+        data: null,
+        message: error.message,
       });
     }
   }

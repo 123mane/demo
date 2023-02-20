@@ -25,7 +25,6 @@ async function bootstrap() {
     .setTitle('Dummy')
     .setDescription('The Crud-Relation API description')
     .setVersion('1.0')
-
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
@@ -40,7 +39,7 @@ async function bootstrap() {
       },
     }),
   );
-  app.register(contentParser)
+  app.register(contentParser);
   app.useStaticAssets({
     root: join(__dirname, '..', 'public'),
   });

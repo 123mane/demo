@@ -113,6 +113,7 @@ export class UsersController {
       if (!isUserExists) {
         return res.code(HttpStatus.NOT_FOUND).send({
           success: false,
+          meaasge: i18n.t('common.USER_NOT_FOUND'),
           data: null,
         });
       }

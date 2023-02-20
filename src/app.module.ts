@@ -46,7 +46,7 @@ const { db_host, db_name, db_password, db_port, db_username } =
       models: arrayOfModels,
       autoLoadModels: true,
       synchronize: true,
-      logging: true,
+      logging: false,
     }),
     MailModule,
     RegisterModule,

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Op } from 'sequelize';
+import { count } from 'console';
+import { col, fn, Op } from 'sequelize';
 import { User } from 'src/users/entities/user.entity';
 import { CreateRegisterDto } from './dto/create-register.dto';
 import { UpdateRegisterDto } from './dto/update-register.dto';
@@ -62,19 +63,46 @@ export class RegisterService {
 
       return await this.RegisterRepo.findAndCountAll({
         where,
-        attributes: ['id', 'username', 'email'],
-        include: [{ model: User }],
+        attributes: {
+          exclude: ['password', 'mobileno', 'userId', 'createdAt', 'updatedAt'],
+        },
+        include: [{ model: User, attributes: ['id', 'username', 'email'] }],
         offset: skip,
         limit,
       });
     } else {
       return await this.RegisterRepo.findAndCountAll({
         where,
-        attributes: ['id', 'username', 'email'],
+        attributes: {
+          exclude: ['password', 'mobileno', 'userId', 'createdAt', 'updatedAt'],
+        },
         raw: true,
         nest: true,
       });
     }
+  }
+
+  async findAllandCount(email: string, username: string) {
+    email = email.toLowerCase();
+    console.log('Email', email);
+    let where = {};
+    if (email) {
+      where['email'] = email;
+    }
+    if (username) {
+      where['username'] = username;
+    }
+    let data: any = await this.RegisterRepo.findAll({
+      where,
+      attributes: [
+        'email',
+        [fn('count', col('email')), 'quantity'],
+        'username',
+        [fn('count', col('username')), 'quantity'],
+      ],
+      group: ['username'],
+    });
+    return data;
   }
 
   async findOne(param: any): Promise<Register> {

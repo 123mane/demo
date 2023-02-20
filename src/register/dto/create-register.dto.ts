@@ -1,14 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import {
-  IsBoolean,
-  isEmail,
   IsEmail,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
-  minLength,
   MinLength,
 } from 'class-validator';
 export class CreateRegisterDto {
@@ -72,4 +69,15 @@ export class ReadWalletUserDto extends PaginationDto {
   @IsString()
   @IsOptional()
   sortby: string;
+}
+export class EmailDto {
+  @ApiProperty({ type: 'string' })
+  @IsString()
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+  @ApiProperty({ type: 'string' })
+  @IsString()
+  @IsNotEmpty()
+  username: string;
 }
