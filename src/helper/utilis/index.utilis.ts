@@ -3,6 +3,7 @@ const xlsx = require('xlsx');
 export function arrayToCSV(data) {
   let csv = data.map((row) => Object.values(row));
   csv.unshift(Object.keys(data[0]));
+  return csv;
   return `"${csv.join('"\n"').replace(/,/g, '","')}"`;
 }
 export function convertCsvToArray(filePath: string) {

@@ -198,11 +198,10 @@ export class RegisterController {
   }
 
   @Get('/dwonload')
-
-  // @Set('Content-Type', 'text/csv');
   async downloadCsvfile(@Res() res: any, @I18n() i18n: I18nContext) {
     try {
       let user = await this.registerService.findAll();
+      console.log('User', user);
       let data = arrayToCSV(user);
       if (!user) {
         return res.code(HttpStatus.BAD_REQUEST).send({
