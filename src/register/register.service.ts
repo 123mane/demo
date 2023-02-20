@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { where } from 'sequelize';
+import { Op } from 'sequelize';
 import { User } from 'src/users/entities/user.entity';
 import { CreateRegisterDto } from './dto/create-register.dto';
 import { UpdateRegisterDto } from './dto/update-register.dto';
@@ -18,7 +18,6 @@ export class RegisterService {
   }
 
   async uploadimage(params: any) {
-    // console.log(params);
     return await this.MultiMeadiaRepository.create(params);
   }
 
@@ -26,21 +25,58 @@ export class RegisterService {
     return await this.MultiMeadiaRepository.findOne({ where: { id: id } });
   }
   async findAll() {
-    return await this.RegisterRepo.findAll({
+    return await this.RegisterRepo.findAndCountAll({
       include: [
         { model: User, attributes: ['firstName', 'LastName', 'walletAddress'] },
       ],
       raw: true,
-      // order: [['createdAt']],
+      limit: 100,
     });
   }
   async createBulkCategory(data: any) {
-    console.log('data', data);
     return await this.RegisterRepo.bulkCreate(data);
   }
-  // async findOne(id: number) {
-  //   return await this.RegisterRepo.findOne({ where: { id: id } });
-  // }
+  async filter(param: any): Promise<any> {
+    let where = {};
+    let sortby = 'DESC';
+    if (param.sortby) {
+      sortby = param.sortby;
+    }
+    if (param.username) {
+      where['username'] = { [Op.like]: `${param.username}` };
+    }
+    if (param.email) {
+      where['email'] = { [Op.like]: `${param.email}` };
+    }
+    if (param.search) {
+      where[Op.or] = [
+        { email: { [Op.like]: `${param.search}` } },
+        { username: { [Op.like]: `${param.search}` } },
+      ];
+    }
+
+    if (param.page && param.limit) {
+      let page = param.page;
+      let limit = param.limit;
+      let skip = (page - 1) * limit;
+
+      return await this.RegisterRepo.findAndCountAll({
+        where,
+        attributes: ['id', 'username', 'email'],
+        include: [{ model: User }],
+        offset: skip,
+        limit,
+      });
+    } else {
+      return await this.RegisterRepo.findAndCountAll({
+        where,
+        attributes: ['id', 'username', 'email'],
+        raw: true,
+        nest: true,
+      });
+    }
+  }
+
   async findOne(param: any): Promise<Register> {
     let where = {};
     if (param.id) {
@@ -61,11 +97,9 @@ export class RegisterService {
     return await this.RegisterRepo.update(updateRegisterDto, {
       where: { id: id },
     });
-    // return `This action updates a #${id} register`;
   }
 
   async remove(id: number) {
     return await this.RegisterRepo.destroy({ where: { id: id } });
-    // return `This action removes a #${id} register`;
   }
 }

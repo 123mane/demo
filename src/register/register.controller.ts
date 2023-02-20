@@ -16,7 +16,11 @@ import {
 } from '@nestjs/common';
 
 import { RegisterService } from './register.service';
-import { CreateRegisterDto, CreateUploadDto } from './dto/create-register.dto';
+import {
+  CreateRegisterDto,
+  CreateUploadDto,
+  ReadWalletUserDto,
+} from './dto/create-register.dto';
 import { UpdateRegisterDto } from './dto/update-register.dto';
 import { passwordEncryption } from 'src/helper/utilis';
 import { Response } from 'express';
@@ -198,8 +202,6 @@ export class RegisterController {
   }
 
   @Get('/dwonload')
-
-  // @Set('Content-Type', 'text/csv');
   async downloadCsvfile(@Res() res: any, @I18n() i18n: I18nContext) {
     try {
       let user = await this.registerService.findAll();
@@ -301,6 +303,28 @@ export class RegisterController {
         });
       }
     } catch (error) {
+      return res.code(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        success: false,
+        message: error.message,
+        data: null,
+      });
+    }
+  }
+  @Get('/filter')
+  async Filter(
+    @Res() res: FastifyReply,
+    @I18n() i18n: I18nContext,
+    @Query() query: ReadWalletUserDto,
+  ) {
+    try {
+      let user = await this.registerService.filter(query);
+      return res.code(HttpStatus.OK).send({
+        success: true,
+        message: i18n.t('common.USER_LIST'),
+        data: user,
+      });
+    } catch (error) {
+      console.log('error', error);
       return res.code(HttpStatus.INTERNAL_SERVER_ERROR).send({
         success: false,
         message: error.message,
