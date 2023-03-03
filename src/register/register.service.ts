@@ -1,15 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { count } from 'console';
+import { HttpService } from '@nestjs/axios';
 import { col, fn, Op } from 'sequelize';
 import { User } from 'src/users/entities/user.entity';
 import { CreateRegisterDto } from './dto/create-register.dto';
 import { UpdateRegisterDto } from './dto/update-register.dto';
 import { MultiMedia, Register } from './entities/register.entity';
+import redis from 'ioredis';
 
+let deflaut_Expression = 3600;
+let redisclient = redis.createClient();
 @Injectable()
 export class RegisterService {
   constructor(
+    private readonly httpService: HttpService,
     @InjectModel(Register) private RegisterRepo: typeof Register,
     @InjectModel(MultiMedia) private MultiMeadiaRepository: typeof MultiMedia,
   ) {}
@@ -120,6 +124,9 @@ export class RegisterService {
       where,
     });
   }
+  async finddOne(id: number) {
+    return await this.RegisterRepo.findOne({ where: { id: id } });
+  }
 
   async update(id: number, updateRegisterDto: UpdateRegisterDto) {
     return await this.RegisterRepo.update(updateRegisterDto, {
@@ -129,5 +136,27 @@ export class RegisterService {
 
   async remove(id: number) {
     return await this.RegisterRepo.destroy({ where: { id: id } });
+  }
+  // add redis using the mysql with redis
+  async findAlll() {
+    return await this.RegisterRepo.findAll();
+  }
+
+  async add() {
+    let dataa = await redisclient.get('cou');
+    let data = JSON.parse(dataa);
+    if (data != null) {
+      console.log('result:', data);
+      console.log('Type:', typeof data);
+      return data;
+    } else {
+      let { data } = await this.httpService.axiosRef.get(
+        'http://localhost:3000/register/cou',
+      );
+      console.log('top:', typeof data);
+      redisclient.setex('cou', deflaut_Expression, JSON.stringify(data));
+      // console.log('Daatata:', data);
+      return data;
+    }
   }
 }

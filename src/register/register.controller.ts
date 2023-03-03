@@ -146,6 +146,7 @@ export class RegisterController {
   async findAll(@Res() res: FastifyReply, @I18n() i18n: I18nContext) {
     try {
       let user = await this.registerService.findAll();
+      // console.log('user:', typeof user);
       //  var data= arrayToCSV(user);
       if (!user) {
         return res.code(HttpStatus.BAD_REQUEST).send({
@@ -232,7 +233,7 @@ export class RegisterController {
     @Res() res: FastifyReply,
   ) {
     try {
-      let user = await this.registerService.findOne(+id);
+      let user = await this.registerService.finddOne(+id);
       if (!user) {
         return res.code(HttpStatus.BAD_REQUEST).send({
           success: false,
@@ -242,6 +243,7 @@ export class RegisterController {
       } else {
         return res.code(HttpStatus.OK).send({
           success: true,
+          data: user,
           message: i18n.t('common.USER_UPDATE'),
         });
       }
@@ -355,6 +357,64 @@ export class RegisterController {
         data: null,
         message: error.message,
       });
+    }
+  }
+
+  @Get('/cou')
+  async findAllwithredis(
+    // @Query() query: EmailDto,
+    // @Param('id') id: string,
+    @I18n() i18n: I18nContext,
+    @Res() res: FastifyReply,
+  ) {
+    try {
+      let data = await this.registerService.findAlll();
+      console.log('data:', data);
+      return res.code(HttpStatus.OK).send({
+        success: true,
+        data: data,
+        message: i18n.t('common.DATA_SHOW_AND_COUNT'),
+      });
+    } catch (error) {
+      return res.code(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        success: false,
+        data: null,
+        message: error.message,
+      });
+    }
+  }
+  @Get('/cou/:id')
+  async findAllwithredisid(
+    // @Query() query: EmailDto,
+    @Param('id') id: string,
+    @I18n() i18n: I18nContext,
+    @Res() res: FastifyReply,
+  ) {
+    try {
+      let data = await this.registerService.finddOne(+id);
+      console.log('data:', data);
+      return res.code(HttpStatus.OK).send({
+        success: true,
+        data: data,
+        message: i18n.t('common.DATA_SHOW_AND_COUNT'),
+      });
+    } catch (error) {
+      return res.code(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        success: false,
+        data: null,
+        message: error.message,
+      });
+    }
+  }
+
+  @Get('/data')
+  async data(@Res() res: FastifyReply) {
+    try {
+      let dataa = await this.registerService.add();
+      // console.log('data:', dataa);
+      res.code(HttpStatus.OK).send({ data: dataa });
+    } catch (error) {
+      console.log('Error:', error);
     }
   }
 }
